@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+from time import sleep
 
 import requests
 
@@ -11,18 +12,29 @@ log = logging.getLogger(__name__)
 
 
 class BotToken:
-    def __init__(self, config):
+    def __init__(self, config, **kwargs):
         self.nickname = config["main"]["nickname"]
         self.client_id = config["webtwitchapi"]["client_id"]
         self.client_secret = config["webtwitchapi"]["client_secret"]
 
         token = RedisManager.get().get("{}:token".format(self.nickname))
         if not token:
-            raise ValueError("No token set for bot. Log into the bot using the web interface /bot_login route")
+            tries = kwargs.get('tries', 1)
 
-        self.token = json.loads(token)
+            if tries > 5:
+                raise ValueError("No token set for bot. Log into the bot using the web interface /bot_login route")
+            else:
+                sleep_timer = tries * 2
 
-        self.access_token_expires_at = None
+                log.error("Unable to fetch bot-token from redis server, retrying in {} seconds".format(sleep_timer))
+                sleep(sleep_timer)
+
+                self.__init__(config, tries=tries)
+
+        else:
+            self.token = json.loads(token)
+
+            self.access_token_expires_at = None
 
     # Check if token has expired
     def expired(self):
