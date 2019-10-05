@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: configuration/PajbotDockerfile
-    restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
+#    restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
     env_file:
       - configuration/docker/.env
     volumes:
@@ -63,8 +63,6 @@ services:
 
 volumes:
   pajbot-postgres:
-    driver: local
-  pajbot-db:
     driver: local
   pajbot-redis:
     driver: local
