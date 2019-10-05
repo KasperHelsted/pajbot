@@ -37,7 +37,9 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
 
   postgres:
-    image: eu.gcr.io/your-project/postgres-multi-db
+    build:
+      context: .
+      dockerfile: configuration/PostgresDockerfile
     restart: always
     volumes:
       - pajbot-postgres:/var/lib/postgresql/data
@@ -46,18 +48,18 @@ services:
         - POSTGRES_USER=user1;user2
         - POSTGRES_PASSWORD=pass1;pass2
 
-  mysql:
-    build:
-      context: .
-      dockerfile: configuration/MariaDBDockerfile
-    restart: always
-    volumes:
-      - pajbot-db:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=myroot
-      - MYSQL_USER=user1;user2
-      - MYSQL_PASSWORD=pass1;pass2
-      - MYSQL_DATABASE=db1;db2
+#  mysql:
+#    build:
+#      context: .
+#      dockerfile: configuration/MariaDBDockerfile
+#    restart: always
+#    volumes:
+#      - pajbot-db:/var/lib/mysql
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=myroot
+#      - MYSQL_USER=user1;user2
+#      - MYSQL_PASSWORD=pass1;pass2
+#      - MYSQL_DATABASE=db1;db2
 
 volumes:
   pajbot-postgres:
