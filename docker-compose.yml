@@ -48,19 +48,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=omegalul
 
-#  mysql:
-#    build:
-#      context: .
-#      dockerfile: configuration/MariaDBDockerfile
-#    restart: always
-#    volumes:
-#      - pajbot-db:/var/lib/mysql
-#    environment:
-#      - MYSQL_ROOT_PASSWORD=myroot
-#      - MYSQL_USER=user1;user2
-#      - MYSQL_PASSWORD=pass1;pass2
-#      - MYSQL_DATABASE=db1;db2
-
 volumes:
   pajbot-postgres:
     driver: local
