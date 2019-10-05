@@ -36,6 +36,16 @@ services:
       - pajbot-redis:/data
     command: ["redis-server", "--appendonly", "yes"]
 
+  postgres:
+    image: eu.gcr.io/your-project/postgres-multi-db
+    restart: always
+    volumes:
+      - pajbot-postgres:/var/lib/postgresql/data
+    environment:
+        - POSTGRES_MULTIPLE_DATABASES=db1;db2
+        - POSTGRES_USER=user1;user2
+        - POSTGRES_PASSWORD=pass1;pass2
+
   mysql:
     build:
       context: .
@@ -50,6 +60,8 @@ services:
       - MYSQL_DATABASE=db1;db2
 
 volumes:
+  pajbot-postgres:
+    driver: local
   pajbot-db:
     driver: local
   pajbot-redis:
