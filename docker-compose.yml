@@ -44,7 +44,7 @@ services:
     volumes:
       - pajbot-postgres:/var/lib/postgresql/data
     environment:
-      - POSTGRES_MULTIPLE_DATABASES=db1,db2
+      - POSTGRES_MULTIPLE_DATABASES=db1:db2
       - POSTGRES_USER=user1,user2
       - POSTGRES_PASSWORD=pass1,pass2
 
