@@ -1,0 +1,56 @@
+version: '3.2'
+services:
+  pajbot_web:
+    build:
+      context: .
+      dockerfile: configuration/PajbotDockerfile
+    env_file:
+      - configuration/docker/.env
+    ports:
+      - "7070:2325" # Forward container port 2325 to host port 7070
+    volumes:
+      - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
+    depends_on:
+      - mysql
+      - redis
+    command: ["python3", "app.py", "--config", "configs/config.ini"]
+
+  pajbot_bot:
+    build:
+      context: .
+      dockerfile: configuration/PajbotDockerfile
+    restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
+    env_file:
+      - configuration/docker/.env
+    volumes:
+      - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
+    depends_on:
+      - mysql
+      - redis
+    command: ["python3", "main.py", "--config", "configs/config.ini"]
+
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - pajbot-redis:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  mysql:
+    build:
+      context: .
+      dockerfile: configuration/MariaDBDockerfile
+    restart: always
+    volumes:
+      - pajbot-db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=myroot
+      - MYSQL_USER=user1;user2
+      - MYSQL_PASSWORD=pass1;pass2
+      - MYSQL_DATABASE=db1;db2
+
+volumes:
+  pajbot-db:
+    driver: local
+  pajbot-redis:
+    driver: local
