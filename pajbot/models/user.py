@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
+from datetime import timedelta, datetime
 
-from datetime import timedelta
 from sqlalchemy import BOOLEAN, INT, TEXT, BIGINT, Interval, or_, and_
 from sqlalchemy import Column
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -266,8 +266,8 @@ class User(Base):
             "num_lines": self.num_lines,
             "num_lines_rank": self.num_lines_rank,
             "tokens": self.tokens,
-            "last_seen": self.last_seen.isoformat(),
-            "last_active": self.last_seen.isoformat(),
+            "last_seen": datetime.now() if self.last_seen is None else self.last_seen.isoformat(),
+            "last_active": datetime.now() if self.last_seen is None else self.last_seen.isoformat(),
             "ignored": self.ignored,
             "banned": self.banned,
         }
@@ -326,10 +326,10 @@ class User(Base):
         if not always_fresh:
             user_from_db = (
                 db_session.query(User)
-                .filter(or_(User.login == input, User.name == input))
-                .order_by(User.login_last_updated.desc())
-                .limit(1)
-                .one_or_none()
+                    .filter(or_(User.login == input, User.name == input))
+                    .order_by(User.login_last_updated.desc())
+                    .limit(1)
+                    .one_or_none()
             )
 
             if user_from_db is not None:
@@ -357,20 +357,20 @@ class User(Base):
         # look for a match in both the login and name
         return (
             db_session.query(User)
-            .filter(or_(User.login == input, User.name == input))
-            .order_by(User.login_last_updated.desc())
-            .limit(1)
-            .one_or_none()
+                .filter(or_(User.login == input, User.name == input))
+                .order_by(User.login_last_updated.desc())
+                .limit(1)
+                .one_or_none()
         )
 
     @staticmethod
     def find_by_login(db_session, login):
         return (
             db_session.query(User)
-            .filter_by(login=login)
-            .order_by(User.login_last_updated.desc())
-            .limit(1)
-            .one_or_none()
+                .filter_by(login=login)
+                .order_by(User.login_last_updated.desc())
+                .limit(1)
+                .one_or_none()
         )
 
     @staticmethod
