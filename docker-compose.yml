@@ -10,6 +10,7 @@ services:
       - "7070:2325" # Forward container port 2325 to host port 7070
     volumes:
       - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
+      - pajbot-sockets:/srv/pajbot
     depends_on:
       - postgres
       - redis
@@ -24,6 +25,7 @@ services:
       - configuration/docker/.env
     volumes:
       - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
+      - pajbot-sockets:/srv/pajbot
     depends_on:
       - postgres
       - redis
@@ -49,6 +51,8 @@ services:
       - POSTGRES_PASSWORD=omegalul
 
 volumes:
+  pajbot-sockets:
+    driver: local
   pajbot-postgres:
     driver: local
   pajbot-redis:
