@@ -17,9 +17,11 @@ class RedisManager:
 
     @staticmethod
     def init(**options):
-        options["host"] = os.environ.get("REDIS", "localhost")
-
-        RedisManager.redis = redis.Redis(**{"decode_responses": True, **options})
+        RedisManager.redis = redis.Redis(**{
+            "decode_responses": True,
+            "host": os.environ.get("REDIS", "localhost"),
+            **options
+        })
 
     @staticmethod
     def get():
