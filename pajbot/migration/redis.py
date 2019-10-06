@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 
 from redis import Redis
@@ -13,7 +14,8 @@ class RedisMigratable:
         redis = None
 
         try:
-            redis = Redis(**self.redis_options)
+            print(self.redis_options)
+            redis = Redis(**{"host": os.environ.get("REDIS", "localhost"), **self.redis_options})
             yield redis
         finally:
             if redis is not None:
