@@ -8,13 +8,13 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, foreign
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.sql import functions
-from sqlalchemy.sql.functions import now
 from sqlalchemy_utc import UtcDateTime
 
 from pajbot import utils
 from pajbot.exc import FailedCommand
 from pajbot.managers.db import Base
 from pajbot.managers.redis import RedisManager
+from pajbot.models.duel import UserDuelStats
 
 log = logging.getLogger(__name__)
 
@@ -70,30 +70,47 @@ class User(Base):
     #     user.name = 'Snusbot'
     # This would issue an `UPDATE` command that sets user.login even if the login was already "snusbot" before,
     # and so the login_last_updated becomes updated on the database side via the trigger.
-    login_last_updated = Column(UtcDateTime(), nullable=False, default=now(), server_default="NOW()")
+    login_last_updated = Column(UtcDateTime(), nullable=False, server_default="NOW()")
 
     # Twitch user display name
     name = Column(TEXT, nullable=False, index=True)
 
-    level = Column(INT, nullable=False, default=100, server_default="100")
-    points = Column(BIGINT, nullable=False, default=0, server_default="0", index=True)
-    subscriber = Column(BOOLEAN, nullable=False, default=False, server_default="FALSE")
-    moderator = Column(BOOLEAN, nullable=False, default=False, server_default="FALSE")
-    time_in_chat_online = Column(
-        Interval, nullable=False, default=timedelta(minutes=0), server_default="INTERVAL '0 minutes'"
-    )
-    time_in_chat_offline = Column(
-        Interval, nullable=False, default=timedelta(minutes=0), server_default="INTERVAL '0 minutes'"
-    )
-    num_lines = Column(BIGINT, nullable=False, default=0, server_default="0", index=True)
-    tokens = Column(INT, nullable=False, default=0, server_default="0")
-    last_seen = Column(UtcDateTime(), nullable=True, default=None, server_default="NULL")
-    last_active = Column(UtcDateTime(), nullable=True, default=None, server_default="NULL")
-    ignored = Column(BOOLEAN, nullable=False, default=False, server_default="FALSE")
-    banned = Column(BOOLEAN, nullable=False, default=False, server_default="FALSE")
-    timeout_end = Column(UtcDateTime(), nullable=True, default=None, server_default="NULL")
+    level = Column(INT, nullable=False, server_default="100")
+    points = Column(BIGINT, nullable=False, server_default="0", index=True)
+    subscriber = Column(BOOLEAN, nullable=False, server_default="FALSE")
+    moderator = Column(BOOLEAN, nullable=False, server_default="FALSE")
+    time_in_chat_online = Column(Interval, nullable=False, server_default="INTERVAL '0 minutes'")
+    time_in_chat_offline = Column(Interval, nullable=False, server_default="INTERVAL '0 minutes'")
+    num_lines = Column(BIGINT, nullable=False, server_default="0", index=True)
+    tokens = Column(INT, nullable=False, server_default="0")
+    last_seen = Column(UtcDateTime(), nullable=True, server_default="NULL")
+    last_active = Column(UtcDateTime(), nullable=True, server_default="NULL")
+    ignored = Column(BOOLEAN, nullable=False, server_default="FALSE")
+    banned = Column(BOOLEAN, nullable=False, server_default="FALSE")
+    timeout_end = Column(UtcDateTime(), nullable=True, server_default="NULL")
 
     _rank = relationship("UserRank", primaryjoin=foreign(id) == UserRank.user_id, lazy="select")
+
+    def __init__(self, *args, **kwargs):
+        self.level = 100
+        self.points = 0
+        self.subscriber = False
+        self.moderator = False
+        self.time_in_chat_online = timedelta(minutes=0)
+        self.time_in_chat_offline = timedelta(minutes=0)
+        self.num_lines = 0
+        self.tokens = 0
+        self.last_seen = None
+        self.last_active = None
+        self.ignored = False
+        self.banned = False
+        self.timeout_end = None
+
+        super().__init__(*args, **kwargs)
+
+    _duel_stats = relationship(
+        UserDuelStats, uselist=False, cascade="all, delete-orphan", passive_deletes=True, back_populates="user"
+    )
 
     @hybrid_property
     def username(self):
@@ -158,6 +175,12 @@ class User(Base):
         if timed_out is not False:
             raise ValueError("Only `False` may be assigned to User.timed_out")
         self.timeout_end = None
+
+    @property
+    def duel_stats(self):
+        if self._duel_stats is None:
+            self._duel_stats = UserDuelStats()
+        return self._duel_stats
 
     def can_afford(self, points_to_spend):
         return self.points >= points_to_spend

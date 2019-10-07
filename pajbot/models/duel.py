@@ -3,7 +3,6 @@ import logging
 from sqlalchemy import Column, INT
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import backref
 from sqlalchemy.orm import relationship
 from sqlalchemy_utc import UtcDateTime
 
@@ -17,18 +16,28 @@ class UserDuelStats(Base):
     __tablename__ = "user_duel_stats"
 
     user_id = Column(INT, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True, autoincrement=False)
-    duels_won = Column(INT, nullable=False, default=0)
-    duels_total = Column(INT, nullable=False, default=0)
-    points_won = Column(INT, nullable=False, default=0)
-    points_lost = Column(INT, nullable=False, default=0)
+    duels_won = Column(INT, nullable=False)
+    duels_total = Column(INT, nullable=False)
+    points_won = Column(INT, nullable=False)
+    points_lost = Column(INT, nullable=False)
     last_duel = Column(UtcDateTime(), nullable=True)
-    current_streak = Column(INT, nullable=False, default=0)
-    longest_winstreak = Column(INT, nullable=False, default=0)
-    longest_losestreak = Column(INT, nullable=False, default=0)
+    current_streak = Column(INT, nullable=False)
+    longest_winstreak = Column(INT, nullable=False)
+    longest_losestreak = Column(INT, nullable=False)
 
-    user = relationship(
-        "User", cascade="", uselist=False, backref=backref("duel_stats", uselist=False, cascade="", lazy="select")
-    )
+    def __init__(self, *args, **kwargs):
+        self.duels_won = 0
+        self.duels_total = 0
+        self.points_won = 0
+        self.points_lost = 0
+        self.last_duel = None
+        self.current_streak = 0
+        self.longest_winstreak = 0
+        self.longest_losestreak = 0
+
+        super().__init__(*args, **kwargs)
+
+    user = relationship("User", cascade="save-update, merge", lazy="joined", back_populates="_duel_stats")
 
     @hybrid_property
     def duels_lost(self):
@@ -41,13 +50,6 @@ class UserDuelStats(Base):
     @hybrid_property
     def profit(self):
         return self.points_won - self.points_lost
-
-    @staticmethod
-    def for_user(db_session, user):
-        if user.duel_stats is None:
-            user.duel_stats = UserDuelStats(user_id=user.id)
-            db_session.add(user.duel_stats)
-        return user.duel_stats
 
     def won(self, points_won):
         self.duels_won += 1

@@ -8,7 +8,6 @@ from pajbot.managers.db import DBManager
 from pajbot.managers.handler import HandlerManager
 from pajbot.models.command import Command
 from pajbot.models.command import CommandExample
-from pajbot.models.duel import UserDuelStats
 from pajbot.models.user import User
 from pajbot.modules import BaseModule
 from pajbot.modules import ModuleSetting
@@ -177,7 +176,7 @@ class DuelModule(BaseModule):
                 # You cannot duel yourself
                 return False
 
-            if user.last_active is None or (utils.now() - user._last_active) > timedelta(minutes=5):
+            if user.last_active is None or (utils.now() - user.last_active) > timedelta(minutes=5):
                 bot.whisper(
                     source,
                     "This user has not been active in chat within the last 5 minutes. Get them to type in chat before sending another challenge",
@@ -266,8 +265,9 @@ class DuelModule(BaseModule):
             winner.points += duel_price
             winner.points += winning_pot
 
-            UserDuelStats.for_user(db_session, winner).win(winning_pot)
-            UserDuelStats.for_user(db_session, loser).win(duel_price)
+            # Persist duel statistics
+            winner.duel_stats.won(winning_pot)
+            winner.duel_stats.lost(duel_price)
 
             arguments = {
                 "winner": winner.name,
