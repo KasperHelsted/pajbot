@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
-from datetime import timedelta
 
+from datetime import timedelta
 from sqlalchemy import BOOLEAN, INT, TEXT, BIGINT, Interval, or_, and_
 from sqlalchemy import Column
 from sqlalchemy.ext.hybrid import hybrid_property
