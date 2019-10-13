@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: configuration/PajbotDockerfile
-    env_file:
-      - configuration/docker/.env
     ports:
       - "7070:2325" # Forward container port 2325 to host port 7070
     volumes:
@@ -21,8 +19,6 @@ services:
       context: .
       dockerfile: configuration/PajbotDockerfile
     restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
-    env_file:
-      - configuration/docker/.env
     volumes:
       - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
       - sockets:/srv/pajbot # Remember the sockets should be unique between bot and web, unless multiple bots/web should share
