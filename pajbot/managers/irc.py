@@ -44,7 +44,6 @@ class IRCManager:
         self.connection_manager.privmsg(channel, message, increase_message=increase_message)
 
     def on_disconnect(self, chatconn, event):
-        print(event)
         self.connection_manager.on_disconnect(chatconn)
 
     def _dispatcher(self, connection, event):

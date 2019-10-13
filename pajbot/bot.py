@@ -632,7 +632,6 @@ class Bot:
         return self.irc.start()
 
     def on_disconnect(self, chatconn, event):
-        print(event)
         self.irc.on_disconnect(chatconn, event)
 
     def parse_message(self, message, source, event, tags={}, whisper=False):
