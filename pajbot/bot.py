@@ -4,7 +4,6 @@ import logging
 import re
 import sys
 import urllib
-from concurrent.futures.thread import ThreadPoolExecutor
 
 import irc.client
 import requests
@@ -14,6 +13,7 @@ from pytz import timezone
 import pajbot.migration_revisions.db
 import pajbot.migration_revisions.redis
 import pajbot.utils
+from pajbot.action_queue import ActionQueue
 from pajbot.apiwrappers.authentication.access_token import UserAccessToken
 from pajbot.apiwrappers.authentication.client_credentials import ClientCredentials
 from pajbot.apiwrappers.authentication.token_manager import AppAccessTokenManager, UserAccessTokenManager
@@ -152,7 +152,7 @@ class Bot:
         redis_migration.run()
 
         # Thread pool executor for async actions
-        self.action_queue = ThreadPoolExecutor()
+        self.action_queue = ActionQueue()
 
         # refresh points_rank and num_lines_rank regularly
         UserRanksRefreshManager.start(self.action_queue)
@@ -642,7 +642,8 @@ class Bot:
         msg_id = tags.get("id", None)  # None on whispers!
 
         if not whisper and event.target == self.channel:
-            source.moderator = tags["mod"] == "1"
+            # Moderator or broadcaster, both count
+            source.moderator = tags["mod"] == "1" or source.id == self.streamer_user_id
             source.subscriber = tags["subscriber"] == "1"
 
         if not whisper and source.banned:
@@ -779,6 +780,16 @@ class Bot:
                 return False
 
             self.parse_message(event.arguments[0], source, event, tags=tags)
+
+    def on_pubnotice(self, chatconn, event):
+        tags = {tag["key"]: tag["value"] if tag["value"] is not None else "" for tag in event.tags}
+        HandlerManager.trigger(
+            "on_pubnotice",
+            stop_on_false=False,
+            channel=event.target[1:],
+            msg_id=tags["msg-id"],
+            message=event.arguments[0],
+        )
 
     @time_method
     def commit_all(self):

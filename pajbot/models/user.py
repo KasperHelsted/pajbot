@@ -190,8 +190,11 @@ class User(Base):
 
     @contextmanager
     def spend_currency_context(self, points, tokens):
-        with self._spend_currency_context(points, "points"), self._spend_currency_context(tokens, "tokens"):
-            yield
+        try:
+            with self._spend_currency_context(points, "points"), self._spend_currency_context(tokens, "tokens"):
+                yield
+        except FailedCommand:
+            pass
 
     @contextmanager
     def _spend_currency_context(self, amount, currency):
@@ -200,10 +203,6 @@ class User(Base):
 
         try:
             yield
-        except FailedCommand:
-            log.debug(f"Returning {amount} {currency} to {self}")
-            setattr(self, currency, getattr(self, currency) + amount)
-            # no raise
         except:
             log.debug(f"Returning {amount} {currency} to {self}")
             setattr(self, currency, getattr(self, currency) + amount)
@@ -284,13 +283,13 @@ class User(Base):
             "points_rank": self.points_rank,
             "subscriber": self.subscriber,
             "moderator": self.moderator,
-            "time_in_chat_online": 0 if self.time_in_chat_offline is None else self.time_in_chat_online.total_seconds(),
-            "time_in_chat_offline": 0 if self.time_in_chat_offline is None else self.time_in_chat_offline.total_seconds(),
+            "time_in_chat_online": None if self.time_in_chat_offline is None else self.time_in_chat_online.total_seconds(),
+            "time_in_chat_offline": None if self.time_in_chat_offline is None else self.time_in_chat_offline.total_seconds(),
             "num_lines": self.num_lines,
             "num_lines_rank": self.num_lines_rank,
             "tokens": self.tokens,
-            "last_seen": datetime.now() if self.last_seen is None else self.last_seen.isoformat(),
-            "last_active": datetime.now() if self.last_seen is None else self.last_seen.isoformat(),
+            "last_seen": self.last_seen.isoformat() if self.last_seen is not None else None,
+            "last_active": self.last_seen.isoformat() if self.last_active is not None else None,
             "ignored": self.ignored,
             "banned": self.banned,
         }

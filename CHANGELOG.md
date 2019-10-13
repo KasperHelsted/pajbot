@@ -17,6 +17,7 @@ Remember to bring your dependencies up to date with `pip install -r requirements
   ```bash
   sudo -u pajbot pg_dump --file=sql_dump_streamer.sql --schema=pajbot1_streamer pajbot
   sudo -u pajbot pg_dump --file=sql_dump_all.sql pajbot
+  sudo -u pajbot ./scripts/redis-dump.py streamer > redis_dump_streamer.bin
   ```
 
 - Feature: Added module to fetch current chatters and update the database back to the bot (was previously [a microservice](https://github.com/pajbot/chatters)). Includes a new `!reload chatters` command.
@@ -31,6 +32,11 @@ Remember to bring your dependencies up to date with `pip install -r requirements
 - Minor: Placed reasonable minimum/maximum limits on the `Seconds until betting closes` setting for the HSBet module.
 - Minor: Added setting to adjust points tax for the duel module
 - Minor: Link checker module now prints far less debug info about itself.
+- Minor: Added possibility to modify command token cost using `--tokens-cost` in `!add command`/`!edit command` commands.
+- Minor: Added two pluralization cases for when only a single user wins a multi-raffle.
+- Minor: Added logging output for notices received from the SQL server.
+- Minor: The bot automatically now additionally refreshes who is a moderator and who isn't (This data was previously only updated when the user typed a message). A `!reload moderators` command has been added to trigger this update manually.
+- Minor: Added a lot more data to the output message of the `!debug user` command.
 - Bugfix: Errors in the main thread no longer exit the bot (#443)
 - Bugfix: Several places in the bot and Web UI now correctly show the user display name instead of login name
 - Bugfix: Removed unfinished "email tag" API.
