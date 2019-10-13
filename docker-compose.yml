@@ -10,7 +10,7 @@ services:
       - "7070:2325" # Forward container port 2325 to host port 7070
     volumes:
       - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
-      - pajbot-sockets:/srv/pajbot
+      - sockets:/srv/pajbot # Remember the sockets should be unique between bot and web, unless multiple bots/web should share
     depends_on:
       - postgres
       - redis
@@ -20,12 +20,12 @@ services:
     build:
       context: .
       dockerfile: configuration/PajbotDockerfile
-#    restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
+    restart: unless-stopped # Enabled auto restart, since the bot is gonna crash until redis has token
     env_file:
       - configuration/docker/.env
     volumes:
       - /opt/pajbots/:/opt/www/configs # /opt/pajbots/ is the host folder, /opt/www/configs is the folder in the container
-      - pajbot-sockets:/srv/pajbot
+      - sockets:/srv/pajbot # Remember the sockets should be unique between bot and web, unless multiple bots/web should share
     depends_on:
       - postgres
       - redis
@@ -35,7 +35,7 @@ services:
     image: redis:latest
     restart: always
     volumes:
-      - pajbot-redis:/data
+      - redis:/data
     command: ["redis-server", "--appendonly", "yes"]
 
   postgres:
@@ -44,16 +44,16 @@ services:
       dockerfile: configuration/PostgresDockerfile
     restart: always
     volumes:
-      - pajbot-postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_MULTIPLE_DATABASES=db1,db2
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=omegalul
 
 volumes:
-  pajbot-sockets:
+  sockets:
     driver: local
-  pajbot-postgres:
+  postgres:
     driver: local
-  pajbot-redis:
+  redis:
     driver: local
