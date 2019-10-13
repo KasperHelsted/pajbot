@@ -283,8 +283,8 @@ class User(Base):
             "points_rank": self.points_rank,
             "subscriber": self.subscriber,
             "moderator": self.moderator,
-            "time_in_chat_online": None if self.time_in_chat_offline is None else self.time_in_chat_online.total_seconds(),
-            "time_in_chat_offline": None if self.time_in_chat_offline is None else self.time_in_chat_offline.total_seconds(),
+            "time_in_chat_online": 0 if self.time_in_chat_offline is None else self.time_in_chat_online.total_seconds(),
+            "time_in_chat_offline": 0 if self.time_in_chat_offline is None else self.time_in_chat_offline.total_seconds(),
             "num_lines": self.num_lines,
             "num_lines_rank": self.num_lines_rank,
             "tokens": self.tokens,
@@ -348,10 +348,10 @@ class User(Base):
         if not always_fresh:
             user_from_db = (
                 db_session.query(User)
-                    .filter(or_(User.login == input, User.name == input))
-                    .order_by(User.login_last_updated.desc())
-                    .limit(1)
-                    .one_or_none()
+                .filter(or_(User.login == input, User.name == input))
+                .order_by(User.login_last_updated.desc())
+                .limit(1)
+                .one_or_none()
             )
 
             if user_from_db is not None:
@@ -379,20 +379,20 @@ class User(Base):
         # look for a match in both the login and name
         return (
             db_session.query(User)
-                .filter(or_(User.login == input, User.name == input))
-                .order_by(User.login_last_updated.desc())
-                .limit(1)
-                .one_or_none()
+            .filter(or_(User.login == input, User.name == input))
+            .order_by(User.login_last_updated.desc())
+            .limit(1)
+            .one_or_none()
         )
 
     @staticmethod
     def find_by_login(db_session, login):
         return (
             db_session.query(User)
-                .filter_by(login=login)
-                .order_by(User.login_last_updated.desc())
-                .limit(1)
-                .one_or_none()
+            .filter_by(login=login)
+            .order_by(User.login_last_updated.desc())
+            .limit(1)
+            .one_or_none()
         )
 
     @staticmethod

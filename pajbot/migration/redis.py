@@ -14,8 +14,7 @@ class RedisMigratable:
         redis = None
 
         try:
-            print(self.redis_options)
-            redis = Redis(**{"host": os.environ.get("REDIS", "localhost"), **self.redis_options})
+            redis = Redis(**self.redis_options)
             yield redis
         finally:
             if redis is not None:

@@ -19,7 +19,6 @@ class RedisManager:
     def init(**options):
         RedisManager.redis = redis.Redis(**{
             "decode_responses": True,
-            "host": os.environ.get("REDIS", "localhost"),
             **options
         })
 
